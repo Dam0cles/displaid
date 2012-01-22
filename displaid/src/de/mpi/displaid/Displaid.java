@@ -2,10 +2,17 @@ package de.mpi.displaid;
 
 import java.util.ArrayList;
 
+import SimpleOpenNI.SimpleOpenNI;
+
+import de.mpi.displaid.motion.MotionManager;
+import de.mpi.displaid.motion.types.CoverFlowButtonHandler;
+import de.mpi.displaid.motion.types.CoverFlowMotionHandler;
+import de.mpi.displaid.motion.types.CoverFlowMotionLostHandler;
 import de.mpi.displaid.ui.Button;
 import de.mpi.displaid.ui.CoverFlow;
 import de.mpi.displaid.ui.ProfilePanel;
-import de.mpi.displaid.ui.UIPanel;
+import de.mpi.displaid.ui.TrackingArea;
+import de.mpi.displaid.ui.UserControl;
 
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -39,28 +46,51 @@ public class Displaid extends PApplet {
 	private CoverFlow coverflow;
 	
 	private ProfilePanel panelProfile;
+	
+	private ArrayList<UserControl> graphObjects;
+	
+	private int coverFlowInteractionDistance = 80;
+	
+	private SimpleOpenNI context;
+
+	private ArrayList<Integer> validUsers;
+	private MotionManager mManager;
 		
 	@Override
 	public void setup() {
+		graphObjects = new ArrayList<UserControl>();
+		mManager = new MotionManager(this);
+		
 		size(1280, 800);
 		loadImages();
 		loadProfiles();
 		setupUI();
+		
+		setupMotionObjects();
 	}
 
 	private void setupUI()
 	{
-		
 		float borderAt = width * 3 / 4;
 		coverflow = new CoverFlow(profiles, 0, 0, borderAt, height);
-		panelProfile = new ProfilePanel(null, borderAt, 20, width / 4, 160);
+		panelProfile = new ProfilePanel(null, borderAt-10, height-300, width / 4, 190);
 		//btnTest = new Button("Foobar", borderAt + 10, 50, 200, 90);
-	}
-	
-	private void drawWait(float percent, float x, float y)
-	{
-		fill(color(80, 255, 80, 80));
-		arc(x, y, 20, 20, 0, (float) Math.PI);
+		
+		// male
+		Button coverflowMaleSelect = new Button("Male",width/2-160,50,100,60);
+		mManager.registerMotionHandler(new CoverFlowButtonHandler(coverflowMaleSelect, coverflow, Profile.MALE));		
+		graphObjects.add(coverflowMaleSelect);
+		
+		// neutral
+		Button coverflowNeutralSelect = new Button("Neutral",width/2-50,50,100,60);
+		mManager.registerMotionHandler(new CoverFlowButtonHandler(coverflowNeutralSelect, coverflow, Profile.BOTH));		
+		graphObjects.add(coverflowNeutralSelect);
+		
+		
+		// female
+		Button coverflowFemaleSelect = new Button("Female",width/2+60,50,100,60);
+		mManager.registerMotionHandler(new CoverFlowButtonHandler(coverflowFemaleSelect, coverflow, Profile.FEMALE));		
+		graphObjects.add(coverflowFemaleSelect);
 	}
 	
 	private void loadImages()
@@ -92,16 +122,29 @@ public class Displaid extends PApplet {
 	@Override
 	public void draw() {
 		
-		background(0);
+		background(255);
 	
+		tint(200);
+		PImage img = mManager.getContext().depthImage();
+		//img.resize(width, 0);
+		//image(img,0,0);
+		
 		drawLogo();
 
+		for (UserControl currElem : graphObjects) {
+			currElem.draw(this);
+		}
+		
 		coverflow.draw(this);
 		panelProfile.setProfile(coverflow.activeProfile);
 		panelProfile.draw(this);
-		drawWait(0.5f, 20, 20);
-		//btnTest.draw(this);
+		
 		animate();
+		
+		mManager.processMotion();
+		
+		mManager.drawHands(this);
+		
 	}
 
 	public void animate()
@@ -121,6 +164,72 @@ public class Displaid extends PApplet {
 		super.init();
 	}
 
+	private void setupMotionObjects() {
+		validUsers = mManager.getValidUsers();
+		context = mManager.getContext();
+		
+		UserControl trackingArea = new TrackingArea(0,0,width,height);
+		CoverFlowMotionHandler cfHandlerLeft = new CoverFlowMotionHandler(coverFlowInteractionDistance, coverflow, trackingArea);
+/*
+		UserControl trackingAreaRight = new TrackingArea(coverFlowStartAreaX+coverFlowTrackingAreaThicknessX+coverFlowTrackingAreaDistX,coverFlowStartAreaY+coverFlowTrackingAreaThicknessY,coverFlowTrackingAreaThicknessX,coverFlowTrackingAreaDistY);
+		CoverFlowMotionHandler cfHandlerRight = new CoverFlowMotionHandler(coverFlowInteractionSpeed, trackingAreaRight, true, coverflow);
+		
+		cfHandlerLeft.setOppositeSideHandler(cfHandlerRight);
+		cfHandlerRight.setOppositeSideHandler(cfHandlerLeft);
+		
+		UserControl interruptAreaBottom = new TrackingArea(coverFlowStartAreaX,coverFlowStartAreaY+coverFlowTrackingAreaThicknessY+coverFlowTrackingAreaDistY,coverFlowTrackingAreaDistX+2*coverFlowTrackingAreaThicknessX,coverFlowTrackingAreaThicknessY);
+		UserControl interruptAreaTop = new TrackingArea(coverFlowStartAreaX,coverFlowStartAreaY,coverFlowTrackingAreaDistX+2*coverFlowTrackingAreaThicknessX,coverFlowTrackingAreaThicknessY);
+		
+		CoverFlowMotionLostHandler cfLostTop = new CoverFlowMotionLostHandler(interruptAreaTop, coverflow);
+		CoverFlowMotionLostHandler cfLostBottom = new CoverFlowMotionLostHandler(interruptAreaBottom, coverflow);
+		
+		cfLostTop.addCoverFlowMotionHandler(cfHandlerLeft);
+		cfLostTop.addCoverFlowMotionHandler(cfHandlerRight);
+		cfLostBottom.addCoverFlowMotionHandler(cfHandlerLeft);
+		cfLostBottom.addCoverFlowMotionHandler(cfHandlerRight);
+	*/	
+		mManager.registerMotionHandler(cfHandlerLeft);
+		/*
+		mManager.registerMotionHandler(cfHandlerRight);
+		mManager.registerMotionHandler(cfLostTop);
+		mManager.registerMotionHandler(cfLostBottom);
+		*/
+		graphObjects.add(trackingArea);
+		/*
+		graphObjects.add(trackingAreaRight);
+		graphObjects.add(interruptAreaTop);
+		graphObjects.add(interruptAreaBottom);
+		*/
+	}
+	
+	public void onNewUser(int userId) {
+		context.startPoseDetection("Psi",userId);
+		
+		if (userId < 3 && !validUsers.contains(userId)) {
+			validUsers.add(userId);
+		}
+	}
+	
+	public void onLostUser(int userId) {
+		if (validUsers.contains(userId)) {
+			validUsers.remove(validUsers.indexOf(userId));
+		}
+	}
+
+	public void onEndCalibration(int userId, boolean successfull) {
+		if (successfull) {
+			context.startTrackingSkeleton(userId);
+		} 
+		else {
+			context.startPoseDetection("Psi",userId);
+		}
+	}
+
+	public void onStartPose(String pose,int userId) {
+		context.stopPoseDetection(userId); 
+		context.requestCalibrationSkeleton(userId, true);
+	}
+	
 	/**
 	 * @param args
 	 */
