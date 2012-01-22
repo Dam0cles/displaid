@@ -44,7 +44,7 @@ public class ProfilePanel extends UIPanel {
 		
 		loadIcons(canvas);
 		
-		canvas.fill(255);
+		canvas.fill(50);
 		canvas.textAlign(canvas.LEFT, canvas.CENTER);
 		canvas.textSize(18);
 		

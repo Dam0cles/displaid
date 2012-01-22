@@ -15,7 +15,7 @@ public class CoverFlow extends UserControl {
 	/**
 	 * spin direction of CoverFlow
 	 */
-	private int spin = SPIN_LEFT;
+	private int spin = SPIN_STOP;
 
 	/**
 	 * CoverFlow starting index, indicating that the following next {@link #count} relevant pictures will be show
@@ -36,6 +36,8 @@ public class CoverFlow extends UserControl {
 	 */
 	private float maxSpeed = 0.01f;
 	
+	private int lastDirection;
+	
 	/**
 	 * maximal edge length of an image, can be either width or height (depending on which of them is longer)
 	 */
@@ -45,7 +47,7 @@ public class CoverFlow extends UserControl {
 		public PImage image;
 		public float angle;
 		public Profile profile;
-		
+			
 		public MovingImage(PImage img, float a) {
 			image = img;
 			angle = a;
@@ -85,6 +87,7 @@ public class CoverFlow extends UserControl {
 	{
 		super(x, y, width, height);
 		this.profiles = profiles;
+		lastDirection = SPIN_STOP;
 		
 		// distribute profile images across ellipse
 		initialize(0);
@@ -153,19 +156,26 @@ public class CoverFlow extends UserControl {
 	
 	public void move(float dT)
 	{
-		float da = (spin == SPIN_LEFT) ? -speed : (spin == SPIN_RIGHT) ? speed : 0;
+		float da = speed;
+		if (spin == SPIN_LEFT) da = -speed;
+		else if (spin == SPIN_STOP){
+			if (lastDirection == SPIN_LEFT) da = -speed;
+		}
+		
 		for (int i = 0; i < images.size(); i++) {
 			MovingImage mi = images.get(i);
 			mi.angle += da;
 			if (mi.angle > Math.PI)
 				mi.angle = (float) - Math.PI;
-			if (mi.angle < - Math.PI)
+			else if (mi.angle < - Math.PI)
 				mi.angle = (float) Math.PI;
 		}
-		if ((spin == SPIN_LEFT || spin == SPIN_RIGHT) && (speed < maxSpeed))
+		if ((spin == SPIN_LEFT || spin == SPIN_RIGHT) && (speed < maxSpeed)) {
+			lastDirection = spin;
 			speed += 0.005f;
+		}
 		if (spin == SPIN_STOP && speed > 0f)
-			speed -= 0.005f;
+			speed -= 0.00012f;
 	}
 	
 	@Override
@@ -202,5 +212,9 @@ public class CoverFlow extends UserControl {
 			
 			canvas.image(mi.image, image_x  - (image_w / 2), image_y - (image_h / 2), image_w, image_h);
 		}
+	}
+	
+	public void setSpinDirection(int direction) {
+		spin = direction;
 	}
 }

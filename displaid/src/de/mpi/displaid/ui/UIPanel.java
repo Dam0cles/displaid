@@ -22,12 +22,12 @@ public class UIPanel extends UserControl {
 	public void draw(PApplet canvas) {
 		
 		
-		canvas.fill(canvas.color(255, 255, 255, active ? 128 : 64));
+		canvas.fill(canvas.color(255, 0, 0, 100));
 		canvas.noStroke();
 		float radius = HEADER / 2.0f;
 		canvas.rect(x, y + HEADER, width, height - HEADER, 0, 0, 10, 10);
 		
-		canvas.fill(canvas.color(255, 255, 0, active ? 200 : 100));
+		canvas.fill(canvas.color(200, 100, 100, 200));
 		canvas.rect(x, y, width, HEADER, 10, 10, 0, 0);
 		
 		canvas.fill(255);
