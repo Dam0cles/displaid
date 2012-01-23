@@ -127,7 +127,7 @@ public class Displaid extends PApplet {
 		tint(200);
 		PImage img = mManager.getContext().depthImage();
 		//img.resize(width, 0);
-		//image(img,0,0);
+		image(img,0,0);
 		
 		drawLogo();
 

@@ -41,6 +41,9 @@ public abstract class MotionHandler {
 					leftHandEnteredEvent(userId);
 					leftHandIsIn = true;
 				}
+				else {
+					leftHandStaysIn(userId);
+				}
 			}
 			else if (bodyPart == SimpleOpenNI.SKEL_RIGHT_HAND) {
 				if (!rightHandIsIn) {
