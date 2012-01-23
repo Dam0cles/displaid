@@ -26,4 +26,16 @@ public class DefaultMotionHandler extends MotionHandler {
 		
 	}
 
+	@Override
+	public void leftHandStaysInEvent(int userId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void rightHandStaysInEvent(int userId) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

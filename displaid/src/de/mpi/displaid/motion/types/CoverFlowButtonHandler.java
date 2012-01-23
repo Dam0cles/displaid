@@ -39,4 +39,16 @@ public class CoverFlowButtonHandler extends MotionHandler {
 	public void rightHandLeftEvent(int userId) {
 	
 	}
+
+	@Override
+	public void leftHandStaysInEvent(int userId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void rightHandStaysInEvent(int userId) {
+		// TODO Auto-generated method stub
+		
+	}
 }

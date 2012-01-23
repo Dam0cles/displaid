@@ -84,4 +84,16 @@ public class CoverFlowMotionHandler extends MotionHandler {
 		lastLeftHandPos = leftHandPos;
 		lastRightHandPos = rightHandPos;
 	}
+
+	@Override
+	public void leftHandStaysInEvent(int userId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void rightHandStaysInEvent(int userId) {
+		// TODO Auto-generated method stub
+		
+	}
 }

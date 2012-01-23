@@ -5,6 +5,7 @@ import processing.core.PApplet;
 public abstract class UserControl {
 
 	public float x, y, width, height;
+	int activateInMode;
 
 	public UserControl(float x, float y, float width, float height) {
 		super();
@@ -12,6 +13,7 @@ public abstract class UserControl {
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		activateInMode = 0;
 	}
 
 	public abstract void draw(PApplet canvas);
@@ -32,4 +34,11 @@ public abstract class UserControl {
 		return height;
 	}
 
+	public void setActiveInMode(int mode) {
+		activateInMode = mode;
+	}
+	
+	public int getActiveInMode() {
+		return activateInMode;
+	}
 }

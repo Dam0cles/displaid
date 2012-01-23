@@ -18,8 +18,7 @@ public class MotionManager {
 	long lastMotionCheck;
 	long motionCheckInterval = 10;
 	
-	
-	private PImage iconHand = null;
+	private PImage iconHandLeft = null, iconHandRight = null;
 	
 	public MotionManager(PApplet surface) {
 		this.surface = surface;
@@ -41,7 +40,7 @@ public class MotionManager {
 	}
 
 	
-	public void processMotion() {
+	public void processMotion(int currentMode) {
 		long time = java.util.Calendar.getInstance().getTimeInMillis();
 		
 		PVector currRightHandPos = null;
@@ -49,6 +48,8 @@ public class MotionManager {
 		
 		for (Integer currUser : validUsers) {
 			for (MotionHandler currHandler : handlers) {
+				if (currHandler.getUserControl().getActiveInMode() != currentMode) continue;
+				
 				for (Integer currBodyPart : bodyParts) {
 					if (!(currHandler instanceof CoverFlowMotionHandler)) {
 						currHandler.processMotion(currUser, limb3DTo2D(currUser, currBodyPart), currBodyPart);
@@ -86,19 +87,21 @@ public class MotionManager {
 	}
 	
 	public void drawHands(PApplet surface) {
-		if (iconHand == null) {
-			iconHand = surface.loadImage("img/icons/hand.png");
-			iconHand.resize(0, 100);
+		if (iconHandLeft == null) {
+			iconHandLeft = surface.loadImage("img/icons/handleft.png");
+			iconHandLeft.resize(0, 50);
+		}
+		if (iconHandRight == null) {
+			iconHandRight = surface.loadImage("img/icons/handright.png");
+			iconHandRight.resize(0, 50);
 		}
 		for (Integer currUser : validUsers) {
 			if (context.isTrackingSkeleton(currUser)) {
 				PVector leftHand = limb3DTo2D(currUser,SimpleOpenNI.SKEL_LEFT_HAND);
 				PVector rightHand = limb3DTo2D(currUser,SimpleOpenNI.SKEL_RIGHT_HAND);
 				
-				surface.fill(surface.color(255,0,0));
-				surface.rect(leftHand.x, leftHand.y, 5,5);
-				surface.rect(rightHand.x, rightHand.y, 5,5);
-				surface.image(iconHand, rightHand.x - iconHand.width / 2, rightHand.y - iconHand.height / 2);
+				surface.image(iconHandLeft, leftHand.x - iconHandLeft.width / 2, leftHand.y - iconHandLeft.height / 2);
+				surface.image(iconHandRight, rightHand.x - iconHandRight.width / 2, rightHand.y - iconHandRight.height / 2);
 			}
 		}
 	}

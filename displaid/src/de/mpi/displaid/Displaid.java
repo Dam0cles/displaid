@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import SimpleOpenNI.SimpleOpenNI;
 
+import de.mpi.displaid.actions.ActionListener;
 import de.mpi.displaid.motion.MotionManager;
+import de.mpi.displaid.motion.types.ButtonHandler;
 import de.mpi.displaid.motion.types.CoverFlowButtonHandler;
 import de.mpi.displaid.motion.types.CoverFlowMotionHandler;
 import de.mpi.displaid.motion.types.CoverFlowMotionLostHandler;
@@ -72,25 +74,68 @@ public class Displaid extends PApplet {
 	private void setupUI()
 	{
 		float borderAt = width * 3 / 4;
+		
 		coverflow = new CoverFlow(profiles, 0, 0, borderAt, height);
+		graphObjects.add(coverflow);
+		
 		panelProfile = new ProfilePanel(null, borderAt-10, height-300, width / 4, 190);
-		//btnTest = new Button("Foobar", borderAt + 10, 50, 200, 90);
+		graphObjects.add(panelProfile);
 		
 		// male
 		Button coverflowMaleSelect = new Button("Male",width/2-160,50,100,60);
-		mManager.registerMotionHandler(new CoverFlowButtonHandler(coverflowMaleSelect, coverflow, Profile.MALE));		
+		mManager.registerMotionHandler(new ButtonHandler(coverflowMaleSelect,1000));//(coverflowMaleSelect, coverflow, Profile.MALE));		
 		graphObjects.add(coverflowMaleSelect);
+		
+		coverflowMaleSelect.addActionListener( new ActionListener() {
+			public void actionPerformed() {
+				coverflow.setInterest(Profile.MALE);
+			}
+		});
 		
 		// neutral
 		Button coverflowNeutralSelect = new Button("Neutral",width/2-50,50,100,60);
-		mManager.registerMotionHandler(new CoverFlowButtonHandler(coverflowNeutralSelect, coverflow, Profile.BOTH));		
+		mManager.registerMotionHandler(new ButtonHandler(coverflowNeutralSelect,1000));		
 		graphObjects.add(coverflowNeutralSelect);
 		
+		coverflowNeutralSelect.addActionListener(new ActionListener() {
+			public void actionPerformed() {
+				coverflow.setInterest(Profile.BOTH);
+			}
+		});	
 		
 		// female
 		Button coverflowFemaleSelect = new Button("Female",width/2+60,50,100,60);
-		mManager.registerMotionHandler(new CoverFlowButtonHandler(coverflowFemaleSelect, coverflow, Profile.FEMALE));		
+		mManager.registerMotionHandler(new ButtonHandler(coverflowFemaleSelect,1000));		
 		graphObjects.add(coverflowFemaleSelect);
+		
+		coverflowFemaleSelect.addActionListener(new ActionListener() {
+			public void actionPerformed() {
+				coverflow.setInterest(Profile.FEMALE);
+			}
+		});
+		
+		// new profile
+		Button newProfileSelect = new Button("New Profile",borderAt-10,10,width/4,300);
+		mManager.registerMotionHandler(new ButtonHandler(newProfileSelect,1000));		
+		graphObjects.add(newProfileSelect);
+		
+		newProfileSelect.addActionListener(new ActionListener() {
+			public void actionPerformed() {
+				modeActive = MODE_INPUT;
+			}
+		});
+		
+		// back
+		Button backSelect = new Button("Back",borderAt-10,300,width/4,200);
+		backSelect.setActiveInMode(MODE_INPUT);
+		mManager.registerMotionHandler(new ButtonHandler(backSelect,1000));		
+		graphObjects.add(backSelect);
+		
+		backSelect.addActionListener(new ActionListener() {
+			public void actionPerformed() {
+				modeActive = MODE_AMBIENT;
+			}
+		});
 	}
 	
 	private void loadImages()
@@ -129,19 +174,21 @@ public class Displaid extends PApplet {
 		//img.resize(width, 0);
 		image(img,0,0);
 		
-		drawLogo();
+		if (modeActive == MODE_AMBIENT) {
+			drawLogo();	
+		}
 
 		for (UserControl currElem : graphObjects) {
-			currElem.draw(this);
+			if (currElem.getActiveInMode() == modeActive) {
+				currElem.draw(this);
+			}
 		}
 		
-		coverflow.draw(this);
 		panelProfile.setProfile(coverflow.activeProfile);
-		panelProfile.draw(this);
 		
 		animate();
 		
-		mManager.processMotion();
+		mManager.processMotion(modeActive);
 		
 		mManager.drawHands(this);
 		
@@ -229,6 +276,7 @@ public class Displaid extends PApplet {
 		context.stopPoseDetection(userId); 
 		context.requestCalibrationSkeleton(userId, true);
 	}
+	
 	
 	/**
 	 * @param args
